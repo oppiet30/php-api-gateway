@@ -6,3 +6,5 @@ spl_autoload_register(static function (string $class): void {
     $path = dirname(__DIR__) . '/app/' . substr($class, strlen($prefix)) . '.php';
     if (is_file($path)) require $path;
 });
+require __DIR__ . '/Env.php';
+\App\Env::load(dirname(__DIR__) . '/.env');
