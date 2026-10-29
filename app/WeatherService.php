@@ -6,6 +6,8 @@ final class WeatherService {
         $url = 'https://api.open-meteo.com/v1/forecast?' . http_build_query([
             'latitude' => $latitude, 'longitude' => $longitude,
             'current' => 'temperature_2m,relative_humidity_2m,wind_speed_10m',
+            'daily' => 'temperature_2m_max,temperature_2m_min,precipitation_probability_max',
+            'forecast_days' => 7,
             'temperature_unit' => 'fahrenheit', 'wind_speed_unit' => 'mph',
             'timezone' => 'auto',
         ]);
@@ -23,12 +25,22 @@ final class WeatherService {
         if ($body === false || $status !== 200) throw new \RuntimeException('Weather provider unavailable: ' . ($error ?: "HTTP $status"));
         $data = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         if (!isset($data['current']) || !is_array($data['current'])) throw new \RuntimeException('Unexpected weather response');
+        if (!isset($data['daily'], $data['daily_units']) || !is_array($data['daily']) || !is_array($data['daily_units'])) {
+            throw new \RuntimeException('Unexpected daily forecast response');
+        }
+        foreach (['time', 'temperature_2m_max', 'temperature_2m_min', 'precipitation_probability_max'] as $field) {
+            if (!isset($data['daily'][$field]) || !is_array($data['daily'][$field]) || count($data['daily'][$field]) !== 7) {
+                throw new \RuntimeException('Incomplete seven-day forecast');
+            }
+        }
         return [
             'latitude' => $data['latitude'] ?? $latitude,
             'longitude' => $data['longitude'] ?? $longitude,
             'timezone' => $data['timezone'] ?? null,
             'current' => $data['current'],
             'units' => $data['current_units'] ?? [],
+            'daily' => $data['daily'],
+            'daily_units' => $data['daily_units'],
             'provider' => 'Open-Meteo',
         ];
     }

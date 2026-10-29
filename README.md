@@ -39,3 +39,8 @@ Use HTTPS, restrict API key exposure, protect secrets and application files outs
 
 ## Configuration tests
 Run `php tests/env_test.php` to test the lightweight `.env` loader. It supports plain `KEY=value`, quoted values, comments, and existing environment overrides; it does not implement variable interpolation or advanced dotenv syntax.
+
+## Seven-day forecast
+The existing `GET /api/v1/weather?latitude=41.8975&longitude=-84.0372` request returns current conditions plus `daily` and `daily_units`. Authentication is unchanged.
+
+The `daily` object contains seven matching entries in each array: `time` (local dates, starting today), `temperature_2m_max` (daily highs), `temperature_2m_min` (daily lows), and `precipitation_probability_max` (the day's highest precipitation probability, including rain or snow). Temperatures are in Fahrenheit and probabilities are percentages; see `daily_units`. Each index refers to the same date across these arrays.
